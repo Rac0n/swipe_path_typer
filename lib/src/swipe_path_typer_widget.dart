@@ -82,12 +82,11 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
                     return SizedBox(
                         width: width / tilesPerRow - 8,
                         child: widget.tileBuilder?.call(tileContext, letter, isSelected) ?? MouseRegion(
-                        onEnter: (_) => _controller.onTileEnter(i),
-                        onHover: (_) => _controller.onTileHover(i, setState),
+                        onEnter: (_) => _controller.onTileEnter(i, setState),
+                        onExit: (event) => _controller.onTileExit(i),
                         opaque: false,
                           child: GestureDetector(
                             onTapDown: (_) => _controller.onTileTapDown(i, setState),
-                            onTapUp: (_) => _controller.onTileTapUp(i, setState),
                             child: defaultTile,
                           )
                         )

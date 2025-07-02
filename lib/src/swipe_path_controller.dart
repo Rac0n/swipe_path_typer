@@ -1,4 +1,5 @@
 // src/swipe_path_controller.dart
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -12,8 +13,11 @@ class SwipePathController {
   final bool smartDetection;
   final List<DateTime> _swipeTimes = [];
 
+  bool _downPressed = false;
+
+  Timer _hoverTimer = Timer(Duration.zero, () {});
+
   int? _hoveredTileIndex;
-  DateTime? _hoverStartTime;
 
   Duration dwellThreshold = Duration(milliseconds: 300);
 
@@ -58,32 +62,26 @@ class SwipePathController {
 
   void onTileTapDown(int index, void Function(VoidCallback) triggerRebuild) {
     selectedIndexes.add(index);
+    _downPressed = true;
     _swipePath.add(index);
     triggerRebuild(() {});
   }
 
 
-  void onTileEnter(int index) {
-    if(selectedIndexes.isEmpty) return;
+  void onTileEnter(int index, void Function(VoidCallback) triggerRebuild) {
+    if (_hoveredTileIndex == null || !_downPressed) return;
     _hoveredTileIndex = index;
-    _hoverStartTime = DateTime.now();
+    _hoverTimer = Timer(dwellThreshold, () {
+      selectedIndexes.add(index);
+      _hoveredTileIndex = null;
+      triggerRebuild(() {});
+    });
   }
 
-
-  void onTileHover(int index, void Function(VoidCallback) triggerRebuild) {
-    if (_hoveredTileIndex == null) return;
-
-    final now = DateTime.now();
-    final hoverDuration = now.difference(_hoverStartTime!);
-
-    if (hoverDuration >= dwellThreshold) {
-      if (!selectedIndexes.contains(index)) {
-        selectedIndexes.add(index);
-        _hoveredTileIndex = null;
-        _hoverStartTime = null;
-        triggerRebuild(() {});
-      }
-    }
+  void onTileExit(int index) {
+    if (_hoveredTileIndex == null || _hoveredTileIndex != index) return;
+    _hoveredTileIndex = null;
+    _hoverTimer.cancel();
   }
 
 
@@ -134,7 +132,6 @@ class SwipePathController {
     _swipePoints.clear();
     _swipeTimes.clear();
     _hoveredTileIndex = null;
-    _hoverStartTime = null;
 
     return word;
   }

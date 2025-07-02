@@ -1,5 +1,5 @@
 // lib/swipe_path_typer.dart
-library swipe_path_typer;
+library;
 
 export 'src/swipe_path_typer_widget.dart';
 export 'src/swipe_path_controller.dart';
