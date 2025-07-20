@@ -18,7 +18,7 @@ class SwipePathTile extends StatelessWidget {
         : theme.colorScheme.surfaceContainerHighest;
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 400),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: bgColor,

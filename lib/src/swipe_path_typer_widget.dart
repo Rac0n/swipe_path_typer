@@ -1,6 +1,7 @@
 // src/swipe_path_typer_widget.dart
 import 'package:flutter/material.dart';
 import 'package:swipe_path_typer/main.dart';
+import 'package:swipe_path_typer/src/swipe_path_painter.dart';
 
 class SwipePathTyper extends StatefulWidget {
   final List<String> tiles;
@@ -44,59 +45,77 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
   Widget build(BuildContext context) {
     return GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onPanStart: (details) => _controller.startSwipe(),
         onPanUpdate: (details) => _controller.updateSwipe(details.globalPosition, setState),
-        onPanEnd: (_) {
-          final word = _controller.endSwipe();
+        onPanEnd: (details) {
+          final word = _controller.endSwipe(details.globalPosition, setState);
           if (word.isNotEmpty) {
             widget.onWordCompleted(word);
           }
           setState(() {});
         },
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final tileCount = widget.tiles.length;
-            final tilesPerRow = (tileCount / widget.rowCount).ceil();
+        child: Stack(
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final tileCount = widget.tiles.length;
+                final tilesPerRow = (tileCount / widget.rowCount).ceil();
 
-            return Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 8,
-              runSpacing: 8,
-              children: List.generate(tileCount, (i) {
-                return Builder(
-                  builder: (tileContext) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      final box = tileContext.findRenderObject() as RenderBox?;
-                      if (box != null && box.hasSize) {
-                        final position = box.localToGlobal(Offset.zero);
-                        final rect = position & box.size;
-                        _controller.registerTileRect(i, rect);
-                      }
-                    });
+                return Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: List.generate(tileCount, (i) {
+                    return Builder(
+                      builder: (tileContext) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          final box = tileContext.findRenderObject() as RenderBox?;
+                          if (box != null && box.hasSize) {
+                            final position = box.localToGlobal(Offset.zero);
+                            final rect = position & box.size;
+                            _controller.registerTileRect(i, rect);
+                          }
+                        });
 
-                    final isSelected = _controller.selectedIndexes.contains(i);
-                    final letter = widget.tiles[i];
-                    final defaultTile = SwipePathTile(letter: letter, isSelected: isSelected);
+                        final isSelected = _controller.selectedIndexes.contains(i);
+                        final letter = widget.tiles[i];
+                        final defaultTile = SwipePathTile(letter: letter, isSelected: isSelected);
 
-                    return SizedBox(
-                        width: width / tilesPerRow - 8,
-                        child: widget.tileBuilder?.call(tileContext, letter, isSelected) ?? MouseRegion(
-                        onEnter: (_) => _controller.onTileEnter(i, setState),
-                        onExit: (event) => _controller.onTileExit(i),
-                        opaque: false,
-                          child: GestureDetector(
-                            onTapDown: (_) => _controller.onTileTapDown(i, setState),
-                            child: defaultTile,
-                          )
-                        )
-                      );
-                  },
+                        return SizedBox(
+                          width: width / tilesPerRow - 8,
+                          child: widget.tileBuilder?.call(tileContext, letter, isSelected) ??
+                            MouseRegion(
+                              hitTestBehavior: HitTestBehavior.translucent,
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTapDown: (_) => _controller.onTileTapDown(i, setState),
+                                child: defaultTile,
+                              ),
+                            )
+                        );
+                      },
+                    );
+                  }),
                 );
-              }),
-            );
-          },
-        ),
+              },
+            ),
+            IgnorePointer(
+              child: Builder(
+                builder: (context) {
+                  final box = context.findRenderObject() as RenderBox?;
+                  final localPoints = _controller.swipeTrail
+                      .map((globalOffset) => box?.globalToLocal(globalOffset) ?? Offset.zero)
+                      .toList();
+
+                  return CustomPaint(
+                    painter: SwipeTrailPainter(points: localPoints),
+                    size: Size.infinite,
+                  );
+                },
+              ),
+            ),
+          ]
+        )
       );
   }
 }
