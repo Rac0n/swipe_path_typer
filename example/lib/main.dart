@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:swipe_path_typer/main.dart';
+import 'package:swipe_path_typer/swipe_path_typer.dart';
 
 void main() {
   runApp(const SwipeDemoApp());
@@ -38,6 +38,7 @@ class SwipeDemoHome extends StatelessWidget {
             const SizedBox(height: 20),
             Expanded(
               child: SwipePathTyper(
+                simpleTapMode: false,
                 tiles: letters,
                 onWordCompleted: (word) {
                   ScaffoldMessenger.of(context).showSnackBar(

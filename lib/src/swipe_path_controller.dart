@@ -8,7 +8,7 @@ class SwipePathController {
   final Map<int, Rect> _tileRects = {};
   final List<int> _swipePath = [];
   final List<Offset> _swipePoints = [];
-  final bool smartDetection;
+  final bool simpleTapMode;
   List<Offset> get swipeTrail => List.unmodifiable(_swipePoints);
 
   final Set<int> _lockedTiles = {};
@@ -16,31 +16,77 @@ class SwipePathController {
   int? _hoveredSelectedTile;
   bool _downPressed = false;
 
-  final Duration dwellThreshold = Duration(milliseconds: 360);
-  Timer _dwellTimer = Timer(Duration.zero, () {});
-
-  SwipePathController(this._tiles, {this.smartDetection = true});
+  static const Duration _cleanupDelay = Duration(milliseconds: 200);
+  static const Duration _minSwipeTurnDelay = Duration(milliseconds: 420);
 
 
-  void onTileTapDown(int index, void Function(VoidCallback) triggerRebuild) {
+  static const int _maxSwipePoints = 69;
+
+  Timer? _dwellTimer;
+
+  SwipePathController(this._tiles, {this.simpleTapMode = true});
+
+
+  Rect _deflateRect(Rect rect, [double factor = 0.1]) {
+    double deflation = min(rect.width, rect.height) * factor;
+    return rect.deflate(deflation);
+  }
+
+
+  void _addSwipePoint(Offset point) {
+    if (_swipePoints.length >= _maxSwipePoints) {
+      _swipePoints.removeAt(0);
+    }
+    _swipePoints.add(point);
+  }
+
+
+  void _resetState(bool fullReset, bool rebuild, void Function(VoidCallback) triggerRebuild) {
     selectedIndexes.clear();
     _swipePath.clear();
     _swipePoints.clear();
     _lockedTiles.clear();
     _hoveredTileIndex = null;
     _hoveredSelectedTile = null;
+    _lockedTiles.clear();
+
+    if (fullReset){
+      _downPressed = false;
+      _dwellTimer?.cancel();
+    }
+    if (rebuild) {
+      triggerRebuild(() {});
+    }
+  }
+
+
+  void onTileTapDown(int index, void Function(VoidCallback) triggerRebuild) {
+    debugPrint('onTileTapDown: $index, simpleTapMode: $simpleTapMode');
+    _resetState(false, false, triggerRebuild);
     _downPressed = true;
     selectedIndexes.add(index);
     _swipePath.add(index);
     _lockedTiles.add(index);
     _hoveredSelectedTile = index;
     triggerRebuild(() {});
+    Timer(_cleanupDelay, () {
+      if (simpleTapMode && _hoveredSelectedTile != null) {
+        _lockedTiles.remove(_hoveredSelectedTile!);
+        selectedIndexes.remove(_hoveredSelectedTile);
+        _hoveredSelectedTile = null;
+        triggerRebuild(() {});
+
+        // Clean up state
+        _resetState(true, false, triggerRebuild);
+      }
+    });
   }
 
   void updateSwipe(Offset globalPosition, void Function(VoidCallback) triggerRebuild) {
+    debugPrint('updateSwipe called with globalPosition: $globalPosition');
     if (!_downPressed) return;
 
-    _swipePoints.add(globalPosition);
+    _addSwipePoint(globalPosition);
 
     // Unlock selected tile when finger leaves it
     if (_hoveredSelectedTile != null) {
@@ -57,12 +103,7 @@ class SwipePathController {
       final index = entry.key;
       final rect = entry.value;
 
-      double deflation = rect.width / 10;
-      if (rect.height / 10 < deflation) {
-        deflation = rect.height / 10;
-      }
-
-      final deflatedRect = rect.deflate(deflation);
+      final deflatedRect = _deflateRect(rect);
 
       if (!deflatedRect.contains(globalPosition)) continue;
       if (_lockedTiles.contains(index)) continue;
@@ -70,8 +111,8 @@ class SwipePathController {
       // Dwell trigger
       if (_hoveredTileIndex != index) {
         _hoveredTileIndex = index;
-        _dwellTimer.cancel();
-        _dwellTimer = Timer(dwellThreshold, () {
+        _dwellTimer?.cancel();
+        _dwellTimer = Timer(_minSwipeTurnDelay, () {
           if (_hoveredTileIndex == index && !_lockedTiles.contains(index)) {
             selectedIndexes.add(index);
             _swipePath.add(index);
@@ -83,57 +124,83 @@ class SwipePathController {
       }
 
       // Sharp turn detection
-      final sharpTurn = smartDetection && _isSharpTurnNear(index);
-      if (!smartDetection || sharpTurn) {
-        _dwellTimer.cancel();
+      final sharpTurn = _isSharpTurnNear(index);
+      if (sharpTurn) {
+        _dwellTimer?.cancel();
         _hoveredTileIndex = null;
         selectedIndexes.add(index);
         _swipePath.add(index);
         _lockedTiles.add(index);
         _hoveredSelectedTile = index;
-        _swipePoints.add(globalPosition);
+        _addSwipePoint(globalPosition);
         triggerRebuild(() {});
         break;
       }
     }
   }
 
+  String getCurrentWord() {
+    return _swipePath.map((i) => _tiles[i]).join();
+  }
+
   String endSwipe(Offset globalPosition, void Function(VoidCallback) triggerRebuild) {
+    debugPrint('endSwipe called with globalPosition: $globalPosition');
     if (!_downPressed) return '';
 
-    _swipePoints.add(globalPosition);
+    _addSwipePoint(globalPosition);
 
     for (var entry in _tileRects.entries) {
       final index = entry.key;
       final rect = entry.value;
 
-      double deflation = rect.width / 10;
-      if (rect.height / 10 < deflation) {
-        deflation = rect.height / 10;
-      }
 
-      if (!rect.deflate(deflation).contains(globalPosition)) continue;
+      if (!_deflateRect(rect).contains(globalPosition)) continue;
       if (_lockedTiles.contains(index)) continue;
 
       selectedIndexes.add(index);
       _swipePath.add(index);
-      _swipePoints.add(globalPosition);
+      _addSwipePoint(globalPosition);
       break;
     }
 
     final word = _swipePath.map((i) => _tiles[i]).join();
 
-    // Clean up state
-    selectedIndexes.clear();
-    _swipePath.clear();
-    _swipePoints.clear();
-    _hoveredTileIndex = null;
-    _hoveredSelectedTile = null;
-    _lockedTiles.clear();
-    _downPressed = false;
-    _dwellTimer.cancel();
+    Timer(_cleanupDelay, () {
+        // Clean up state
+      _resetState(true, true, triggerRebuild);
+    });
 
     return word;
+  }
+
+  bool onTileTapUp(int index, void Function(VoidCallback) triggerRebuild) {
+    debugPrint('onTileTapUp: $index, simpleTapMode: $simpleTapMode');
+    if (simpleTapMode) return false;
+
+    if (_hoveredSelectedTile == index) {
+    _resetState(false, false, triggerRebuild);
+    selectedIndexes.add(index);
+    _swipePath.add(index);
+    _lockedTiles.add(index);
+    _hoveredSelectedTile = index;
+    triggerRebuild(() {});
+
+    Timer(_cleanupDelay, () {
+      if (_hoveredSelectedTile != null) {
+        _lockedTiles.remove(_hoveredSelectedTile!);
+        selectedIndexes.remove(_hoveredSelectedTile);
+        _hoveredSelectedTile = null;
+
+        // Clean up state
+        _resetState(true, true, triggerRebuild);
+      }
+    });
+
+    return true;
+    }
+    else {
+      return false;
+    }
   }
 
   // --- Sharp Turn Detection ---
@@ -167,12 +234,8 @@ class SwipePathController {
 
     if (rect == null) return false;
 
-    double deflation = rect.width / 10;
-    if (rect.height / 10 < deflation) {
-      deflation = rect.height / 10;
-    }
 
-    return angle > 69 && rect.deflate(deflation).contains(c);
+    return angle > 69 && _deflateRect(rect).contains(c);
   }
 
 
@@ -187,6 +250,6 @@ class SwipePathController {
     _swipePath.clear();
     _swipePoints.clear();
     _lockedTiles.clear();
-    _dwellTimer.cancel();
+    _dwellTimer?.cancel();
   }
 }
