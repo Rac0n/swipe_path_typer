@@ -3,37 +3,66 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class SwipePathController {
+  /// The list of letters to display as swipeable tiles.
   final List<String> _tiles;
+  /// A set of currently selected tile indexes.
   final Set<int> selectedIndexes = {};
+  /// A map of tile indexes to their rectangle bounds.
   final Map<int, Rect> _tileRects = {};
+  /// A list of indexes representing the swipe path.
   final List<int> _swipePath = [];
+  /// A list of points representing the swipe trail.
   final List<Offset> _swipePoints = [];
+  /// If true, a single tap will immediately submit a word.
   final bool simpleTapMode;
+  /// A list of points representing the swipe trail.
   List<Offset> get swipeTrail => List.unmodifiable(_swipePoints);
 
+  /// A list of points used to lock tiles during swipes.
   final Set<int> _lockedTiles = {};
+  /// The index of the currently hovered tile.
   int? _hoveredTileIndex;
+  /// The index of the currently hovered selected tile.
   int? _hoveredSelectedTile;
+  /// Indicates if the swipe gesture is currently pressed down.
   bool _downPressed = false;
 
+  /// A timer for handling dwell time before unselecting a tile.
   static const Duration _cleanupDelay = Duration(milliseconds: 200);
+  /// The minimum delay before a tile is selected when hovered onto.
   static const Duration _minSwipeTurnDelay = Duration(milliseconds: 420);
 
-
+  /// The maximum number of swipe points to keep in memory.
   static const int _maxSwipePoints = 69;
 
+  /// A timer for handling dwell time before unselecting a tile.
   Timer? _dwellTimer;
 
-  SwipePathController(this._tiles, {this.simpleTapMode = true});
+  /// Creates a controller for managing swipe path typing.
+  SwipePathController(
+    /// The list of letters to display as swipeable tiles.
+    this._tiles,
+    /// If true, a single tap will immediately submit a word.
+    {this.simpleTapMode = true}
+  );
 
-
-  Rect _deflateRect(Rect rect, [double factor = 0.1]) {
+  /// Registers the rectangle bounds of a tile at the given index.
+  Rect _deflateRect(
+    /// The rectangle to deflate.
+    Rect rect,
+    /// The factor by which to deflate the rectangle.
+    [double factor = 0.1]
+  ) {
     double deflation = min(rect.width, rect.height) * factor;
     return rect.deflate(deflation);
   }
 
 
-  void _addSwipePoint(Offset point) {
+  /// Adds a swipe point to the internal list, maintaining a maximum length.
+  void _addSwipePoint(
+    /// The point to add to the swipe trail.
+    Offset point
+  ) {
     if (_swipePoints.length >= _maxSwipePoints) {
       _swipePoints.removeAt(0);
     }
@@ -41,7 +70,15 @@ class SwipePathController {
   }
 
 
-  void _resetState(bool fullReset, bool rebuild, void Function(VoidCallback) triggerRebuild) {
+  /// Resets the controller's state, optionally clearing all data.
+  void _resetState(
+    /// If true, clears all selected tiles but also sets _downPressed to false and cancels the dwell timer.
+    bool fullReset,
+    /// If true, rebuilds the widget tree after resetting.
+    bool rebuild,
+    /// A function to trigger a rebuild of the widget tree.
+    void Function(VoidCallback) triggerRebuild
+  ) {
     selectedIndexes.clear();
     _swipePath.clear();
     _swipePoints.clear();
@@ -60,7 +97,13 @@ class SwipePathController {
   }
 
 
-  void onTileTapDown(int index, void Function(VoidCallback) triggerRebuild) {
+  /// Initializes the tile rectangles after the first build.
+  void onTileTapDown(
+    /// The index of the tile that was tapped.
+    int index,
+    /// A function to trigger a rebuild of the widget tree.
+    void Function(VoidCallback) triggerRebuild
+  ) {
     debugPrint('onTileTapDown: $index, simpleTapMode: $simpleTapMode');
     _resetState(false, false, triggerRebuild);
     _downPressed = true;
@@ -82,7 +125,13 @@ class SwipePathController {
     });
   }
 
-  void updateSwipe(Offset globalPosition, void Function(VoidCallback) triggerRebuild) {
+  /// Updates the swipe path based on the current global position.
+  void updateSwipe(
+    /// The current global position of the swipe gesture.  
+    Offset globalPosition,
+    /// A function to trigger a rebuild of the widget tree.
+    void Function(VoidCallback) triggerRebuild
+  ) {
     debugPrint('updateSwipe called with globalPosition: $globalPosition');
     if (!_downPressed) return;
 
@@ -139,11 +188,18 @@ class SwipePathController {
     }
   }
 
+  /// Ends the swipe and returns the current word formed by the swipe path.
   String getCurrentWord() {
     return _swipePath.map((i) => _tiles[i]).join();
   }
 
-  String endSwipe(Offset globalPosition, void Function(VoidCallback) triggerRebuild) {
+  /// Ends the swipe and returns the current word formed by the swipe path.
+  String endSwipe(
+    /// The global position where the swipe ended.
+    Offset globalPosition,
+    /// A function to trigger a rebuild of the widget tree.
+    void Function(VoidCallback) triggerRebuild
+  ) {
     debugPrint('endSwipe called with globalPosition: $globalPosition');
     if (!_downPressed) return '';
 
@@ -173,7 +229,13 @@ class SwipePathController {
     return word;
   }
 
-  bool onTileTapUp(int index, void Function(VoidCallback) triggerRebuild) {
+  /// Checks if a tile was tapped and updates the state accordingly.
+  bool onTileTapUp(
+    /// The index of the tile that was tapped.
+    int index,
+    /// If true, a single tap will immediately submit a word.
+    void Function(VoidCallback) triggerRebuild
+  ) {
     debugPrint('onTileTapUp: $index, simpleTapMode: $simpleTapMode');
     if (simpleTapMode) return false;
 
@@ -213,6 +275,7 @@ class SwipePathController {
     return acos(cosTheta.clamp(-1.0, 1.0)) * (180 / pi);
   }
 
+  /// Checks if the last three swipe points form a sharp turn near the tile at the given index.
   bool _isSharpTurnNear(int index) {
     if (_swipePoints.length < 3) return false;
 
@@ -240,10 +303,12 @@ class SwipePathController {
 
 
   // --- Tile Bounds Management ---
+  /// Registers the rectangle bounds of a tile at the given index.
   void registerTileRect(int index, Rect rect) {
     _tileRects[index] = rect;
   }
 
+  /// Disposes the controller, clearing all internal state.
   void dispose() {
     _tileRects.clear();
     selectedIndexes.clear();

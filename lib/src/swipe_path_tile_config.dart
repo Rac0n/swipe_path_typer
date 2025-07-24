@@ -4,14 +4,21 @@ class SwipePathTile extends StatelessWidget {
   final String letter;
   final bool isSelected;
 
+  /// Creates a tile for the swipe path typer.
   const SwipePathTile({
     super.key,
+    /// The letter to display in the tile.
     required this.letter,
+    /// Whether the tile is currently selected (part of the swipe path).
     required this.isSelected,
   });
 
+  /// Builds the tile widget with the letter and selection state.
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    /// The build context for the widget.
+    BuildContext context
+  ) {
     final theme = Theme.of(context);
     final bgColor = isSelected
         ? theme.colorScheme.primary

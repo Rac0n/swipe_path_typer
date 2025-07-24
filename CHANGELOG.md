@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2025-07-24
+
+- Additional documenation in the different classes
+
 ## [1.0.0] - 2025-07-24
 
 ### Added

@@ -70,13 +70,18 @@ class SwipePathTyper extends StatefulWidget {
 typedef TileBuilder = Widget Function(BuildContext context, String letter, bool isSelected);
 
 class _SwipePathTyperState extends State<SwipePathTyper> {
+  /// The controller that manages the swipe path state.
   late SwipePathController _controller;
+  /// Indicates whether the tile rectangles have been initialized.
   bool _tileRectsInitialized = false;
+  /// Flag to ensure tile keys are initialized only once.
   bool firstBuild = true;
+  /// List of keys for each tile to access their global positions.
   late List<GlobalKey> _tileKeys;
 
 
 
+  /// Initializes the state and sets up the controller and tile keys.
   @override
   void initState() {
     super.initState();
@@ -93,13 +98,19 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
     _controller = SwipePathController(widget.tiles, simpleTapMode: widget.simpleTapMode);
   }
 
+
+  /// Disposes the controller when the widget is removed from the widget tree.
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 
-  void _registerAllTileRects(BuildContext context) {
+  /// Registers all tile rectangles after the first frame is rendered.
+  void _registerAllTileRects(
+    /// The build context for the widget.
+    BuildContext context
+  ) {
     for (int i = 0; i < widget.tiles.length; i++) {
       final key = _tileKeys[i];
       final renderBox = key.currentContext?.findRenderObject() as RenderBox?;
@@ -112,8 +123,12 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
     _tileRectsInitialized = true;
   }
 
+  /// Updates the tile rectangles if the widget is rebuilt with a different number of tiles.
   @override
-  void didUpdateWidget(covariant SwipePathTyper oldWidget) {
+  void didUpdateWidget(
+    /// The previous widget to compare against.
+    covariant SwipePathTyper oldWidget
+  ) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.tiles.length != widget.tiles.length) {
       _tileRectsInitialized = false;
@@ -122,9 +137,12 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
   }
 
 
-
+  /// Builds the widget tree for the swipe path typer.
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    /// The build context for the widget.
+    BuildContext context
+  ) {
     return GestureDetector(
         behavior: widget.widgetHitTestBehavior,
         onPanUpdate: (details) {
