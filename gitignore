@@ -1,0 +1,38 @@
+
+# Flutter/Dart/Pub related
+.dart_tool/
+.packages
+.pub/
+build/
+flutter_*.png
+generated_plugin_registrant.dart
+
+# IntelliJ related
+.idea/
+*.iml
+
+# VS Code related
+.vscode/
+
+# MacOS / Linux / Windows
+.DS_Store
+*.swp
+
+# Android/iOS folders (only if this is a plugin or app — not needed for pure packages)
+# android/
+# ios/
+
+# Examples
+example/build/
+example/.dart_tool/
+example/.packages
+example/pubspec.lock
+
+# Unit test output
+coverage/
+
+# Logs
+*.log
+
+# Environment files
+.env
