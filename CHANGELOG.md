@@ -2,11 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.1] - 2025-07-24
+## 1.0.2
+
+- Formatted files to adhere to the standard style used in Dart and Flutter projects
+
+## 1.0.1
 
 - Additional documenation in the different classes
 
-## [1.0.0] - 2025-07-24
+## 1.0.0
 
 ### Added
 
