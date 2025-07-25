@@ -12,6 +12,7 @@ class SwipePathTyper extends StatefulWidget {
   final double horizontalTileSpacing;
   final double verticalTileSpacing;
   final EdgeInsets padding;
+  final AlignmentGeometry alignment;
   final Function(DragUpdateDetails)? onPanUpdate;
   final Function(DragEndDetails)? onPanEnd;
   final Function(int tileIndex)? onTapDown;
@@ -47,6 +48,9 @@ class SwipePathTyper extends StatefulWidget {
 
     /// Padding around the entire swipe area. Defaults to EdgeInsets.all(0.0).
     this.padding = const EdgeInsets.all(0.0),
+
+    /// Alignment of the tiles within the swipe area. Defaults to Alignment.bottomCenter.
+    this.alignment = Alignment.bottomCenter,
 
     /// If true, a single tap will immediately submit a word.
     this.simpleTapMode = true,
@@ -98,6 +102,8 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
 
   /// List of keys for each tile to access their global positions.
   late List<GlobalKey> _tileKeys;
+
+
 
   /// Initializes the state and sets up the controller and tile keys.
   @override
@@ -187,7 +193,8 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
                 });
               }
 
-              return Padding(
+              return Container(
+                  alignment: widget.alignment,
                   padding: widget.padding,
                   child: Wrap(
                     alignment: WrapAlignment.center,

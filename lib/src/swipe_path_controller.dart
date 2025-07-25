@@ -116,7 +116,6 @@ class SwipePathController {
 
       /// A function to trigger a rebuild of the widget tree.
       void Function(VoidCallback) triggerRebuild) {
-    debugPrint('onTileTapDown: $index, simpleTapMode: $simpleTapMode');
     _resetState(false, false, triggerRebuild);
     _downPressed = true;
     selectedIndexes.add(index);
@@ -145,7 +144,6 @@ class SwipePathController {
 
       /// A function to trigger a rebuild of the widget tree.
       void Function(VoidCallback) triggerRebuild) {
-    debugPrint('updateSwipe called with globalPosition: $globalPosition');
     if (!_downPressed) return;
 
     _addSwipePoint(globalPosition);
@@ -214,7 +212,6 @@ class SwipePathController {
 
       /// A function to trigger a rebuild of the widget tree.
       void Function(VoidCallback) triggerRebuild) {
-    debugPrint('endSwipe called with globalPosition: $globalPosition');
     if (!_downPressed) return '';
 
     _addSwipePoint(globalPosition);
@@ -250,7 +247,6 @@ class SwipePathController {
 
       /// If true, a single tap will immediately submit a word.
       void Function(VoidCallback) triggerRebuild) {
-    debugPrint('onTileTapUp: $index, simpleTapMode: $simpleTapMode');
     if (simpleTapMode) return false;
 
     if (_hoveredSelectedTile == index) {
