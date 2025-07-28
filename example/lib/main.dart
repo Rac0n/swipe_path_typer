@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:swipe_path_typer/swipe_path_typer.dart';
 
+import 'custom_tile_button.dart';
+
 void main() {
   runApp(const SwipeDemoApp());
 }
@@ -40,6 +42,10 @@ class SwipeDemoHome extends StatelessWidget {
               child: SwipePathTyper(
                 simpleTapMode: false,
                 tiles: letters,
+                tileBuilder: (context, letter, isSelected) => CustomTileButton(
+                  letter: letter,
+                  isSelected: isSelected,
+                ),
                 onWordCompleted: (word) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('You swiped: $word')),

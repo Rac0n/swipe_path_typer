@@ -296,7 +296,7 @@ class SwipePathController {
     final bc = c - b;
 
     // NEW: Add distance threshold (e.g., minimum 10px)
-    const minSegmentLength = 7.0;
+    const minSegmentLength = 10.0;
     if (ab.distance < minSegmentLength || bc.distance < minSegmentLength) {
       return false;
     }
@@ -306,7 +306,7 @@ class SwipePathController {
 
     if (rect == null) return false;
 
-    return angle > 69 && _deflateRect(rect).contains(c);
+    return angle > 20 && angle < 110 && _deflateRect(rect).contains(c);
   }
 
   // --- Tile Bounds Management ---

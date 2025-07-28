@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.0.5
+
+- Fixed a problem with the custom tileBuilder feature
+
+## 1.0.4
+
+- Fixed a padding issue
+
 ## 1.0.3
 
 - Added alignment option and removed certain debug logs

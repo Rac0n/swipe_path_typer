@@ -103,7 +103,8 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
   /// List of keys for each tile to access their global positions.
   late List<GlobalKey> _tileKeys;
 
-
+  /// A key for the painter to ensure it can be referenced in the widget tree.
+  final GlobalKey _painterKey = GlobalKey();
 
   /// Initializes the state and sets up the controller and tile keys.
   @override
@@ -165,6 +166,7 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
       /// The build context for the widget.
       BuildContext context) {
     return GestureDetector(
+        key: _painterKey,
         behavior: widget.widgetHitTestBehavior,
         onPanUpdate: (details) {
           _controller.updateSwipe(details.globalPosition, setState);
@@ -185,6 +187,9 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
               final tileCount = widget.tiles.length;
               final tilesPerRow = widget.columnCount;
               final availableWidth = constraints.maxWidth -
+                  1 -
+                  widget.padding.left -
+                  widget.padding.right -
                   (widget.horizontalTileSpacing * (tilesPerRow - 1));
               final tileWidth = availableWidth / tilesPerRow;
               if (!_tileRectsInitialized) {
@@ -212,14 +217,12 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
                           return SizedBox(
                               key: _tileKeys[i],
                               width: tileWidth,
-                              child: widget.tileBuilder
-                                      ?.call(tileContext, letter, isSelected) ??
-                                  MouseRegion(
-                                    hitTestBehavior: widget.tileHitTestBehavior,
-                                    cursor: widget.tileCursor,
-                                    child: GestureDetector(
-                                      onTapDown: (_) {
-                                        _controller.onTileTapDown(i, setState);
+                              child: MouseRegion(
+                                hitTestBehavior: widget.tileHitTestBehavior,
+                                cursor: widget.tileCursor,
+                                child: GestureDetector(
+                                  onTapDown: (_) {
+                                    _controller.onTileTapDown(i, setState);
                                         widget.onTapDown?.call(i);
                                         if (widget.simpleTapMode) {
                                           final word =
@@ -242,7 +245,8 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
                                           }
                                         }
                                       },
-                                      child: defaultTile,
+                                      child: widget.tileBuilder
+                                      ?.call(tileContext, letter, isSelected) ??defaultTile,
                                     ),
                                   ));
                         },
@@ -254,10 +258,12 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
           IgnorePointer(
             child: Builder(
               builder: (context) {
-                final box = context.findRenderObject() as RenderBox?;
-                if (box == null) return const SizedBox.shrink();
+                final renderBox = _painterKey.currentContext?.findRenderObject()
+                    as RenderBox?;
+                if (renderBox == null) return const SizedBox.shrink();
+
                 final localPoints = _controller.swipeTrail
-                    .map((globalOffset) => box.globalToLocal(globalOffset))
+                    .map((globalPoint) => renderBox.globalToLocal(globalPoint))
                     .toList();
 
                 return CustomPaint(
