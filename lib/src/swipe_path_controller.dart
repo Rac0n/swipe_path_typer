@@ -36,7 +36,7 @@ class SwipePathController {
   /// Indicates if the swipe gesture is currently pressed down.
   bool _downPressed = false;
 
-  /// A timer for handling dwell time before unselecting a tile.
+  /// A timer duration for handling dwell time before unselecting a tile.
   static const Duration _cleanupDelay = Duration(milliseconds: 200);
 
   /// The minimum delay before a tile is selected when hovered onto.
@@ -47,6 +47,10 @@ class SwipePathController {
 
   /// A timer for handling dwell time before unselecting a tile.
   Timer? _dwellTimer;
+
+
+  /// A timer for handling cleanup, and to reset the state of the controller
+  Timer? _cleanupTimer;
 
   /// Creates a controller for managing swipe path typing.
   SwipePathController(
@@ -74,10 +78,13 @@ class SwipePathController {
 
       /// The point to add to the swipe trail.
       Offset point) {
-    if (_swipePoints.length >= _maxSwipePoints) {
-      _swipePoints.removeAt(0);
+    // Only add point if it's significantly different from last point
+    if (_swipePoints.isEmpty || (_swipePoints.last - point).distance > 2.0) {
+      if (_swipePoints.length >= _maxSwipePoints) {
+        _swipePoints.removeAt(0);
+      }
+      _swipePoints.add(point);
     }
-    _swipePoints.add(point);
   }
 
   /// Resets the controller's state, optionally clearing all data.
@@ -123,7 +130,7 @@ class SwipePathController {
     _lockedTiles.add(index);
     _hoveredSelectedTile = index;
     triggerRebuild(() {});
-    Timer(_cleanupDelay, () {
+    _cleanupTimer = Timer(_cleanupDelay, () {
       if (simpleTapMode && _hoveredSelectedTile != null) {
         _lockedTiles.remove(_hoveredSelectedTile!);
         selectedIndexes.remove(_hoveredSelectedTile);
@@ -144,7 +151,7 @@ class SwipePathController {
 
       /// A function to trigger a rebuild of the widget tree.
       void Function(VoidCallback) triggerRebuild) {
-    if (!_downPressed) return;
+    if (!_downPressed || simpleTapMode) return;
 
     _addSwipePoint(globalPosition);
 
@@ -231,7 +238,7 @@ class SwipePathController {
 
     final word = _swipePath.map((i) => _tiles[i]).join();
 
-    Timer(_cleanupDelay, () {
+    _cleanupTimer = Timer(_cleanupDelay, () {
       // Clean up state
       _resetState(true, true, triggerRebuild);
     });
@@ -257,7 +264,7 @@ class SwipePathController {
       _hoveredSelectedTile = index;
       triggerRebuild(() {});
 
-      Timer(_cleanupDelay, () {
+      _cleanupTimer = Timer(_cleanupDelay, () {
         if (_hoveredSelectedTile != null) {
           _lockedTiles.remove(_hoveredSelectedTile!);
           selectedIndexes.remove(_hoveredSelectedTile);
@@ -285,12 +292,14 @@ class SwipePathController {
   }
 
   /// Checks if the last three swipe points form a sharp turn near the tile at the given index.
-  bool _isSharpTurnNear(int index) {
-    if (_swipePoints.length < 3) return false;
+  bool _isSharpTurnNear(int index) {    
+    final len = _swipePoints.length;
 
-    final a = _swipePoints[_swipePoints.length - 3];
-    final b = _swipePoints[_swipePoints.length - 2];
-    final c = _swipePoints[_swipePoints.length - 1];
+    if (len < 3) return false;
+
+    final a = _swipePoints[len - 3];
+    final b = _swipePoints[len - 2];
+    final c = _swipePoints[len - 1];
 
     final ab = b - a;
     final bc = c - b;
@@ -322,6 +331,8 @@ class SwipePathController {
     _swipePath.clear();
     _swipePoints.clear();
     _lockedTiles.clear();
+    
+    _cleanupTimer?.cancel();
     _dwellTimer?.cancel();
   }
 }

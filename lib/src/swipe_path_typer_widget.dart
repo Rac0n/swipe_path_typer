@@ -129,6 +129,93 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
     super.dispose();
   }
 
+  /// Builds the Tile widgets using the default Tile or a custom one
+  Widget _buildTile(
+    /// The index of the tile being built (based on the list of letters given)  
+    int i,
+    /// The width of the tile, based on the available space in which the widget is being built
+    double tileWidth
+  ) {
+        final isSelected = _controller.selectedIndexes.contains(i);
+        final letter = widget.tiles[i];
+        final defaultTile = SwipePathTile(letter: letter, isSelected: isSelected);
+        
+        if(widget.simpleTapMode){
+        return SizedBox(
+          key: _tileKeys[i],
+          width: tileWidth,
+          child: MouseRegion(
+            hitTestBehavior: widget.tileHitTestBehavior,
+            cursor: widget.tileCursor,
+            child: GestureDetector(
+              onTap: () => widget.onWordCompleted(letter),
+              child: Semantics(
+                button: true,
+                label: "Key $letter",
+                child: widget.tileBuilder?.call(context, letter, isSelected) ?? defaultTile,
+              )
+            )
+          )
+        );
+
+        }
+
+        return SizedBox(
+          key: _tileKeys[i],
+          width: tileWidth,
+          child: MouseRegion(
+            hitTestBehavior: widget.tileHitTestBehavior,
+            cursor: widget.tileCursor,
+            child: GestureDetector(
+              onTapDown: (_) {
+                _controller.onTileTapDown(i, setState);
+                widget.onTapDown?.call(i);
+              },
+              onTapUp: (_) {
+                bool result = _controller.onTileTapUp(i, setState);
+                widget.onTapUp?.call(i);
+                if (result) {
+                  String word = _controller.getCurrentWord();
+                  if (word.isNotEmpty) {
+                    widget.onWordCompleted(word);
+                  }
+                }
+              },
+              child: Semantics(
+                button: true,
+                label: "Key $letter",
+                child: widget.tileBuilder?.call(context, letter, isSelected) ?? defaultTile,
+              )
+            ),
+          ),
+        );
+  }
+
+  /// The widget that draws the swiping trail when writing
+  Widget _buildSwipeTrail() {
+    return IgnorePointer(
+      child: Builder(
+        builder: (context) {
+          final renderBox = _painterKey.currentContext?.findRenderObject() as RenderBox?;
+          if (renderBox == null) return const SizedBox.shrink();
+
+          final localPoints = _controller.swipeTrail
+              .map((globalPoint) => renderBox.globalToLocal(globalPoint))
+              .toList();
+
+          return CustomPaint(
+            painter: SwipeTrailPainter(
+              points: localPoints,
+              color: widget.swipeTrailColor,
+              strokeWidth: widget.swipeTrailStrokeWidth,
+            ),
+            size: Size.infinite,
+          );
+        },
+      ),
+    );
+  }
+
   /// Registers all tile rectangles after the first frame is rendered.
   void _registerAllTileRects(
 
@@ -159,30 +246,11 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
     }
   }
 
-  /// Builds the widget tree for the swipe path typer.
-  @override
-  Widget build(
-
-      /// The build context for the widget.
-      BuildContext context) {
-    return GestureDetector(
-        key: _painterKey,
-        behavior: widget.widgetHitTestBehavior,
-        onPanUpdate: (details) {
-          _controller.updateSwipe(details.globalPosition, setState);
-          widget.onPanUpdate?.call(details);
-        },
-        onPanEnd: (details) {
-          final word = _controller.endSwipe(details.globalPosition, setState);
-          widget.onPanEnd?.call(details);
-
-          if (word.isNotEmpty) {
-            widget.onWordCompleted(word);
-          }
-          setState(() {});
-        },
-        child: Stack(children: [
-          LayoutBuilder(
+  /// The main widget when simpleTapMode is set to true
+  Widget _buildSimpleTapMode(
+    /// The build context of the widget
+    BuildContext context){
+      return LayoutBuilder(
             builder: (context, constraints) {
               final tileCount = widget.tiles.length;
               final tilesPerRow = widget.columnCount;
@@ -206,77 +274,46 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
                     spacing: widget.horizontalTileSpacing,
                     runSpacing: widget.verticalTileSpacing,
                     children: List.generate(tileCount, (i) {
-                      return Builder(
-                        builder: (tileContext) {
-                          final isSelected =
-                              _controller.selectedIndexes.contains(i);
-                          final letter = widget.tiles[i];
-                          final defaultTile = SwipePathTile(
-                              letter: letter, isSelected: isSelected);
-
-                          return SizedBox(
-                              key: _tileKeys[i],
-                              width: tileWidth,
-                              child: MouseRegion(
-                                hitTestBehavior: widget.tileHitTestBehavior,
-                                cursor: widget.tileCursor,
-                                child: GestureDetector(
-                                  onTapDown: (_) {
-                                    _controller.onTileTapDown(i, setState);
-                                        widget.onTapDown?.call(i);
-                                        if (widget.simpleTapMode) {
-                                          final word =
-                                              _controller.getCurrentWord();
-                                          if (word.isNotEmpty) {
-                                            widget.onWordCompleted(word);
-                                          }
-                                        }
-                                      },
-                                      onTapUp: (_) {
-                                        bool result = _controller.onTileTapUp(
-                                            i, setState);
-                                        widget.onTapUp?.call(i);
-
-                                        if (result) {
-                                          String word =
-                                              _controller.getCurrentWord();
-                                          if (word.isNotEmpty) {
-                                            widget.onWordCompleted(word);
-                                          }
-                                        }
-                                      },
-                                      child: widget.tileBuilder
-                                      ?.call(tileContext, letter, isSelected) ??defaultTile,
-                                    ),
-                                  ));
-                        },
-                      );
+                      return _buildTile(i, tileWidth);
                     }),
                   ));
             },
-          ),
-          IgnorePointer(
-            child: Builder(
-              builder: (context) {
-                final renderBox = _painterKey.currentContext?.findRenderObject()
-                    as RenderBox?;
-                if (renderBox == null) return const SizedBox.shrink();
+          );
+  }
 
-                final localPoints = _controller.swipeTrail
-                    .map((globalPoint) => renderBox.globalToLocal(globalPoint))
-                    .toList();
+  /// The main widget when simpleTapMode is set to false, which is the default
+  Widget _buildSwipeMode(
+    /// The build context of the widget
+    BuildContext context
+  ){
+    return GestureDetector(
+        key: _painterKey,
+        behavior: widget.widgetHitTestBehavior,
+        onPanUpdate: (details) {
+          _controller.updateSwipe(details.globalPosition, setState);
+          widget.onPanUpdate?.call(details);
+        },
+        onPanEnd: (details) {
+          final word = _controller.endSwipe(details.globalPosition, setState);
+          widget.onPanEnd?.call(details);
 
-                return CustomPaint(
-                  painter: SwipeTrailPainter(
-                    points: localPoints,
-                    color: widget.swipeTrailColor,
-                    strokeWidth: widget.swipeTrailStrokeWidth,
-                  ),
-                  size: Size.infinite,
-                );
-              },
-            ),
-          ),
+          if (word.isNotEmpty) {
+            widget.onWordCompleted(word);
+          }
+          setState(() {});
+        },
+        child: Stack(children: [
+          _buildSimpleTapMode(context),
+          _buildSwipeTrail(),
         ]));
+  }
+
+  /// Builds the widget tree for the swipe path typer.
+  @override
+  Widget build(
+
+      /// The build context for the widget.
+      BuildContext context) {
+    return widget.simpleTapMode? _buildSimpleTapMode(context): _buildSwipeMode(context);
   }
 }
