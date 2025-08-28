@@ -48,7 +48,6 @@ class SwipePathController {
   /// A timer for handling dwell time before unselecting a tile.
   Timer? _dwellTimer;
 
-
   /// A timer for handling cleanup, and to reset the state of the controller
   Timer? _cleanupTimer;
 
@@ -104,7 +103,6 @@ class SwipePathController {
     _lockedTiles.clear();
     _hoveredTileIndex = null;
     _hoveredSelectedTile = null;
-    _lockedTiles.clear();
 
     if (fullReset) {
       _downPressed = false;
@@ -123,7 +121,7 @@ class SwipePathController {
 
       /// A function to trigger a rebuild of the widget tree.
       void Function(VoidCallback) triggerRebuild) {
-    _resetState(false, false, triggerRebuild);
+    _resetState(true, true, triggerRebuild);
     _downPressed = true;
     selectedIndexes.add(index);
     _swipePath.add(index);
@@ -158,7 +156,7 @@ class SwipePathController {
     // Unlock selected tile when finger leaves it
     if (_hoveredSelectedTile != null) {
       final rect = _tileRects[_hoveredSelectedTile!];
-      if (rect != null && !rect.inflate(12).contains(globalPosition)) {
+      if (rect != null && !_deflateRect(rect).contains(globalPosition)) {
         _lockedTiles.remove(_hoveredSelectedTile!);
         selectedIndexes.remove(_hoveredSelectedTile);
         _hoveredSelectedTile = null;
@@ -257,7 +255,7 @@ class SwipePathController {
     if (simpleTapMode) return false;
 
     if (_hoveredSelectedTile == index) {
-      _resetState(false, false, triggerRebuild);
+      _resetState(true, true, triggerRebuild);
       selectedIndexes.add(index);
       _swipePath.add(index);
       _lockedTiles.add(index);
@@ -292,7 +290,7 @@ class SwipePathController {
   }
 
   /// Checks if the last three swipe points form a sharp turn near the tile at the given index.
-  bool _isSharpTurnNear(int index) {    
+  bool _isSharpTurnNear(int index) {
     final len = _swipePoints.length;
 
     if (len < 3) return false;
@@ -331,7 +329,7 @@ class SwipePathController {
     _swipePath.clear();
     _swipePoints.clear();
     _lockedTiles.clear();
-    
+
     _cleanupTimer?.cancel();
     _dwellTimer?.cancel();
   }

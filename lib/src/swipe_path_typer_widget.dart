@@ -131,64 +131,63 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
 
   /// Builds the Tile widgets using the default Tile or a custom one
   Widget _buildTile(
-    /// The index of the tile being built (based on the list of letters given)  
-    int i,
-    /// The width of the tile, based on the available space in which the widget is being built
-    double tileWidth
-  ) {
-        final isSelected = _controller.selectedIndexes.contains(i);
-        final letter = widget.tiles[i];
-        final defaultTile = SwipePathTile(letter: letter, isSelected: isSelected);
-        
-        if(widget.simpleTapMode){
-        return SizedBox(
+
+      /// The index of the tile being built (based on the list of letters given)
+      int i,
+
+      /// The width of the tile, based on the available space in which the widget is being built
+      double tileWidth) {
+    final isSelected = _controller.selectedIndexes.contains(i);
+    final letter = widget.tiles[i];
+    final defaultTile = SwipePathTile(letter: letter, isSelected: isSelected);
+
+    if (widget.simpleTapMode) {
+      return SizedBox(
           key: _tileKeys[i],
           width: tileWidth,
           child: MouseRegion(
-            hitTestBehavior: widget.tileHitTestBehavior,
-            cursor: widget.tileCursor,
-            child: GestureDetector(
-              onTap: () => widget.onWordCompleted(letter),
-              child: Semantics(
-                button: true,
-                label: "Key $letter",
-                child: widget.tileBuilder?.call(context, letter, isSelected) ?? defaultTile,
-              )
-            )
-          )
-        );
+              hitTestBehavior: widget.tileHitTestBehavior,
+              cursor: widget.tileCursor,
+              child: GestureDetector(
+                  onTap: () => widget.onWordCompleted(letter),
+                  child: Semantics(
+                    button: true,
+                    label: "Key $letter",
+                    child:
+                        widget.tileBuilder?.call(context, letter, isSelected) ??
+                            defaultTile,
+                  ))));
+    }
 
-        }
-
-        return SizedBox(
-          key: _tileKeys[i],
-          width: tileWidth,
-          child: MouseRegion(
-            hitTestBehavior: widget.tileHitTestBehavior,
-            cursor: widget.tileCursor,
-            child: GestureDetector(
-              onTapDown: (_) {
-                _controller.onTileTapDown(i, setState);
-                widget.onTapDown?.call(i);
-              },
-              onTapUp: (_) {
-                bool result = _controller.onTileTapUp(i, setState);
-                widget.onTapUp?.call(i);
-                if (result) {
-                  String word = _controller.getCurrentWord();
-                  if (word.isNotEmpty) {
-                    widget.onWordCompleted(word);
-                  }
+    return SizedBox(
+      key: _tileKeys[i],
+      width: tileWidth,
+      child: MouseRegion(
+        hitTestBehavior: widget.tileHitTestBehavior,
+        cursor: widget.tileCursor,
+        child: GestureDetector(
+            onTapDown: (_) {
+              _controller.onTileTapDown(i, setState);
+              widget.onTapDown?.call(i);
+            },
+            onTapUp: (_) {
+              bool result = _controller.onTileTapUp(i, setState);
+              widget.onTapUp?.call(i);
+              if (result) {
+                String word = _controller.getCurrentWord();
+                if (word.isNotEmpty) {
+                  widget.onWordCompleted(word);
                 }
-              },
-              child: Semantics(
-                button: true,
-                label: "Key $letter",
-                child: widget.tileBuilder?.call(context, letter, isSelected) ?? defaultTile,
-              )
-            ),
-          ),
-        );
+              }
+            },
+            child: Semantics(
+              button: true,
+              label: "Key $letter",
+              child: widget.tileBuilder?.call(context, letter, isSelected) ??
+                  defaultTile,
+            )),
+      ),
+    );
   }
 
   /// The widget that draws the swiping trail when writing
@@ -196,7 +195,8 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
     return IgnorePointer(
       child: Builder(
         builder: (context) {
-          final renderBox = _painterKey.currentContext?.findRenderObject() as RenderBox?;
+          final renderBox =
+              _painterKey.currentContext?.findRenderObject() as RenderBox?;
           if (renderBox == null) return const SizedBox.shrink();
 
           final localPoints = _controller.swipeTrail
@@ -248,44 +248,45 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
 
   /// The main widget when simpleTapMode is set to true
   Widget _buildSimpleTapMode(
-    /// The build context of the widget
-    BuildContext context){
-      return LayoutBuilder(
-            builder: (context, constraints) {
-              final tileCount = widget.tiles.length;
-              final tilesPerRow = widget.columnCount;
-              final availableWidth = constraints.maxWidth -
-                  1 -
-                  widget.padding.left -
-                  widget.padding.right -
-                  (widget.horizontalTileSpacing * (tilesPerRow - 1));
-              final tileWidth = availableWidth / tilesPerRow;
-              if (!_tileRectsInitialized) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _registerAllTileRects(context);
-                });
-              }
 
-              return Container(
-                  alignment: widget.alignment,
-                  padding: widget.padding,
-                  child: Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: widget.horizontalTileSpacing,
-                    runSpacing: widget.verticalTileSpacing,
-                    children: List.generate(tileCount, (i) {
-                      return _buildTile(i, tileWidth);
-                    }),
-                  ));
-            },
-          );
+      /// The build context of the widget
+      BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tileCount = widget.tiles.length;
+        final tilesPerRow = widget.columnCount;
+        final availableWidth = constraints.maxWidth -
+            1 -
+            widget.padding.left -
+            widget.padding.right -
+            (widget.horizontalTileSpacing * (tilesPerRow - 1));
+        final tileWidth = availableWidth / tilesPerRow;
+        if (!_tileRectsInitialized) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _registerAllTileRects(context);
+          });
+        }
+
+        return Container(
+            alignment: widget.alignment,
+            padding: widget.padding,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: widget.horizontalTileSpacing,
+              runSpacing: widget.verticalTileSpacing,
+              children: List.generate(tileCount, (i) {
+                return _buildTile(i, tileWidth);
+              }),
+            ));
+      },
+    );
   }
 
   /// The main widget when simpleTapMode is set to false, which is the default
   Widget _buildSwipeMode(
-    /// The build context of the widget
-    BuildContext context
-  ){
+
+      /// The build context of the widget
+      BuildContext context) {
     return GestureDetector(
         key: _painterKey,
         behavior: widget.widgetHitTestBehavior,
@@ -314,6 +315,8 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
 
       /// The build context for the widget.
       BuildContext context) {
-    return widget.simpleTapMode? _buildSimpleTapMode(context): _buildSwipeMode(context);
+    return widget.simpleTapMode
+        ? _buildSimpleTapMode(context)
+        : _buildSwipeMode(context);
   }
 }

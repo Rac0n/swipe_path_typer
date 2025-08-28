@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.0.6
+
+- Fixed a bug with the swipe feature
+
 ## 1.0.5
 
 - Fixed a problem with the custom tileBuilder feature

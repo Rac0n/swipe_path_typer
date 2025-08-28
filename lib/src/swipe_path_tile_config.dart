@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class SwipePathTile extends StatelessWidget {
   /// The letter being shown by the tile widget
   final String letter;
+
   /// A boolean controlling whether the tile is selected or not
   final bool isSelected;
 

@@ -27,8 +27,7 @@ class SwipeDemoHome extends StatefulWidget {
   State<SwipeDemoHome> createState() => _SwipeDemoHomeState();
 }
 
-
-class _SwipeDemoHomeState extends State<SwipeDemoHome>{
+class _SwipeDemoHomeState extends State<SwipeDemoHome> {
   bool simpleTapMode = false;
 
   @override
@@ -40,40 +39,41 @@ class _SwipeDemoHomeState extends State<SwipeDemoHome>{
         title: const Text("SwipePathTyper Demo"),
         actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: Row(
-              children: [
-                Text(
-                  "Select Mode:",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
+              padding: EdgeInsets.only(right: 16.0),
+              child: Row(
+                children: [
+                  Text(
+                    "Select Mode:",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Chip(
-                  label: Text(simpleTapMode ? 'TAP' : 'SWIPE'),
-                  backgroundColor: simpleTapMode 
-                      ? Colors.teal.withAlpha(50)
-                      : Colors.grey.withAlpha(50),
-                ),
-                Switch(
-                  value: simpleTapMode,
-                  onChanged: (value) {
-                    setState(() {
-                      simpleTapMode = value;
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(value ? 'Tap mode activated' : 'Swipe mode activated'),
-                        duration: const Duration(milliseconds: 800),
-                      ),
-                    );
-                  },
-                )
-              ],
-            )
-          )
+                  const SizedBox(width: 8),
+                  Chip(
+                    label: Text(simpleTapMode ? 'TAP' : 'SWIPE'),
+                    backgroundColor: simpleTapMode
+                        ? Colors.teal.withAlpha(50)
+                        : Colors.grey.withAlpha(50),
+                  ),
+                  Switch(
+                    value: simpleTapMode,
+                    onChanged: (value) {
+                      setState(() {
+                        simpleTapMode = value;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(value
+                              ? 'Tap mode activated'
+                              : 'Swipe mode activated'),
+                          duration: const Duration(milliseconds: 800),
+                        ),
+                      );
+                    },
+                  )
+                ],
+              ))
         ],
       ),
       body: Padding(
@@ -81,9 +81,9 @@ class _SwipeDemoHomeState extends State<SwipeDemoHome>{
         child: Column(
           children: [
             Text(
-              simpleTapMode?
-              'Tap letters to form words (quick single-tap input)':
-              'Swipe across letters to form a word! (gesture typing)',
+              simpleTapMode
+                  ? 'Tap letters to form words (quick single-tap input)'
+                  : 'Swipe across letters to form a word! (gesture typing)',
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 20),
