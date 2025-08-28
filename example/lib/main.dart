@@ -39,7 +39,7 @@ class _SwipeDemoHomeState extends State<SwipeDemoHome> {
         title: const Text("SwipePathTyper Demo"),
         actions: [
           Padding(
-              padding: EdgeInsets.only(right: 16.0),
+              padding: const EdgeInsets.only(right: 16.0),
               child: Row(
                 children: [
                   Text(
