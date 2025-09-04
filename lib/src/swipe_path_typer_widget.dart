@@ -1,4 +1,5 @@
 // src/swipe_path_typer_widget.dart
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:swipe_path_typer/swipe_path_typer.dart';
@@ -15,6 +16,7 @@ class SwipePathTyper extends StatefulWidget {
   final AlignmentGeometry alignment;
   final Function(DragUpdateDetails)? onPanUpdate;
   final Function(DragEndDetails)? onPanEnd;
+  final Function(DragStartDetails)? onPanStart;
   final Function(int tileIndex)? onTapDown;
   final Function(int tileIndex)? onTapUp;
   final HitTestBehavior widgetHitTestBehavior;
@@ -61,6 +63,9 @@ class SwipePathTyper extends StatefulWidget {
     /// Callback for pan end events, providing DragEndDetails.
     this.onPanEnd,
 
+    /// Callback for pan start events, providing DragStartDetails.
+    this.onPanStart,
+
     /// Callback for tap down events on tiles, providing the index of the tapped tile.
     this.onTapDown,
 
@@ -71,7 +76,7 @@ class SwipePathTyper extends StatefulWidget {
     this.widgetHitTestBehavior = HitTestBehavior.translucent,
 
     /// HitTestBehavior for each tile, defaults to HitTestBehavior.translucent.
-    this.tileHitTestBehavior = HitTestBehavior.translucent,
+    this.tileHitTestBehavior = HitTestBehavior.opaque,
 
     /// Mouse cursor to use when hovering over tiles, defaults to SystemMouseCursors.click.
     this.tileCursor = SystemMouseCursors.click,
@@ -166,8 +171,8 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
         hitTestBehavior: widget.tileHitTestBehavior,
         cursor: widget.tileCursor,
         child: GestureDetector(
-            onTapDown: (_) {
-              _controller.onTileTapDown(i, setState);
+            onTapDown: (details) {
+              _controller.onTileTapDown(i, details.globalPosition, setState);
               widget.onTapDown?.call(i);
             },
             onTapUp: (_) {
@@ -287,21 +292,34 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
 
       /// The build context of the widget
       BuildContext context) {
-    return GestureDetector(
+    return RawGestureDetector(
         key: _painterKey,
-        behavior: widget.widgetHitTestBehavior,
-        onPanUpdate: (details) {
-          _controller.updateSwipe(details.globalPosition, setState);
-          widget.onPanUpdate?.call(details);
-        },
-        onPanEnd: (details) {
-          final word = _controller.endSwipe(details.globalPosition, setState);
-          widget.onPanEnd?.call(details);
+        gestures: {
+          PanGestureRecognizer: GestureRecognizerFactoryWithHandlers<PanGestureRecognizer>(
+            () => PanGestureRecognizer(),
+            (PanGestureRecognizer instance) {
+              instance.onStart = (details) {
+                int i=_controller.onPanStart(details.globalPosition, setState);
+                if(i!=-1) {
+                  widget.onTapDown?.call(i);
+                }
+                widget.onPanStart?.call(details);
+              };
+              instance.onUpdate = (details) {
+                _controller.updateSwipe(details.globalPosition, setState);
+                widget.onPanUpdate?.call(details);
+              };
+              instance.onEnd = (details) {
+                final word = _controller.endSwipe(details.globalPosition, setState);
+                widget.onPanEnd?.call(details);
 
-          if (word.isNotEmpty) {
-            widget.onWordCompleted(word);
-          }
-          setState(() {});
+                if (word.isNotEmpty) {
+                  widget.onWordCompleted(word);
+                }
+                setState(() {});
+              };
+            },
+          ),  
         },
         child: Stack(children: [
           _buildSimpleTapMode(context),

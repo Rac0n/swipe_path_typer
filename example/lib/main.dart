@@ -89,6 +89,8 @@ class _SwipeDemoHomeState extends State<SwipeDemoHome> {
             const SizedBox(height: 20),
             Expanded(
               child: SwipePathTyper(
+                tileHitTestBehavior: HitTestBehavior.opaque,
+                widgetHitTestBehavior: HitTestBehavior.translucent,
                 simpleTapMode: simpleTapMode,
                 tiles: letters,
                 tileBuilder: (context, letter, isSelected) => CustomTileButton(
@@ -96,9 +98,7 @@ class _SwipeDemoHomeState extends State<SwipeDemoHome> {
                   isSelected: isSelected,
                 ),
                 onWordCompleted: (word) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('You swiped: $word')),
-                  );
+                  
                 },
               ),
             ),

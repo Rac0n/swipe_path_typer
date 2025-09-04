@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.1.0
+- Added the pan start event (fixing cases when the pan start event does not allow the tile tap down event to be called)
+
 ## 1.0.6
 
 - Fixed a bug with the swipe feature
