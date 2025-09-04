@@ -295,12 +295,14 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
     return RawGestureDetector(
         key: _painterKey,
         gestures: {
-          PanGestureRecognizer: GestureRecognizerFactoryWithHandlers<PanGestureRecognizer>(
+          PanGestureRecognizer:
+              GestureRecognizerFactoryWithHandlers<PanGestureRecognizer>(
             () => PanGestureRecognizer(),
             (PanGestureRecognizer instance) {
               instance.onStart = (details) {
-                int i=_controller.onPanStart(details.globalPosition, setState);
-                if(i!=-1) {
+                int i =
+                    _controller.onPanStart(details.globalPosition, setState);
+                if (i != -1) {
                   widget.onTapDown?.call(i);
                 }
                 widget.onPanStart?.call(details);
@@ -310,7 +312,8 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
                 widget.onPanUpdate?.call(details);
               };
               instance.onEnd = (details) {
-                final word = _controller.endSwipe(details.globalPosition, setState);
+                final word =
+                    _controller.endSwipe(details.globalPosition, setState);
                 widget.onPanEnd?.call(details);
 
                 if (word.isNotEmpty) {
@@ -319,7 +322,7 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
                 setState(() {});
               };
             },
-          ),  
+          ),
         },
         child: Stack(children: [
           _buildSimpleTapMode(context),

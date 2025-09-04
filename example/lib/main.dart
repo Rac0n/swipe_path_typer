@@ -97,9 +97,7 @@ class _SwipeDemoHomeState extends State<SwipeDemoHome> {
                   letter: letter,
                   isSelected: isSelected,
                 ),
-                onWordCompleted: (word) {
-                  
-                },
+                onWordCompleted: (word) {},
               ),
             ),
           ],

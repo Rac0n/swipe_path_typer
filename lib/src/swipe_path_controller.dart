@@ -59,8 +59,10 @@ class SwipePathController {
 
       /// If true, a single tap will immediately submit a word.
       {this.simpleTapMode = true}) {
-    _dwellTimers = List.generate(_tiles.length, (_) => Timer(_minSwipeTurnDelay, () {}));
-    _cleanupTimers = List.generate(_tiles.length, (_) => Timer(_cleanupDelay, () {}));
+    _dwellTimers =
+        List.generate(_tiles.length, (_) => Timer(_minSwipeTurnDelay, () {}));
+    _cleanupTimers =
+        List.generate(_tiles.length, (_) => Timer(_cleanupDelay, () {}));
   }
 
   /// Adds a swipe point to the internal list, maintaining a maximum length.
@@ -109,10 +111,11 @@ class SwipePathController {
     }
   }
 
-
   int onPanStart(
+
       /// The global position of the tap.
       Offset globalPosition,
+
       /// A function to trigger a rebuild of the widget tree.
       void Function(VoidCallback) triggerRebuild) {
     if (_downPressed) return -1;
@@ -137,7 +140,7 @@ class SwipePathController {
       _hoveredSelectedTile = index;
       triggerRebuild(() {});
 
-      if(simpleTapMode){
+      if (simpleTapMode) {
         _cleanupTimers[index] = Timer(_cleanupDelay, () {
           if (simpleTapMode && _hoveredSelectedTile != null) {
             _lockedTiles.remove(_hoveredSelectedTile!);
@@ -167,7 +170,7 @@ class SwipePathController {
 
       /// A function to trigger a rebuild of the widget tree.
       void Function(VoidCallback) triggerRebuild) {
-      if (_downPressed) return;
+    if (_downPressed) return;
     _resetState(true, false, triggerRebuild);
 
     _downPressed = true;
@@ -178,18 +181,18 @@ class SwipePathController {
     _hoveredSelectedTile = index;
     triggerRebuild(() {});
 
-    if(simpleTapMode){
-    _cleanupTimers[index] = Timer(_cleanupDelay, () {
-      if (simpleTapMode && _hoveredSelectedTile != null) {
-        _lockedTiles.remove(_hoveredSelectedTile!);
-        selectedIndexes.remove(_hoveredSelectedTile);
-        _hoveredSelectedTile = null;
-        triggerRebuild(() {});
+    if (simpleTapMode) {
+      _cleanupTimers[index] = Timer(_cleanupDelay, () {
+        if (simpleTapMode && _hoveredSelectedTile != null) {
+          _lockedTiles.remove(_hoveredSelectedTile!);
+          selectedIndexes.remove(_hoveredSelectedTile);
+          _hoveredSelectedTile = null;
+          triggerRebuild(() {});
 
-        // Clean up state
-        _resetState(true, false, triggerRebuild);
-      }
-    });
+          // Clean up state
+          _resetState(true, false, triggerRebuild);
+        }
+      });
     }
   }
 
