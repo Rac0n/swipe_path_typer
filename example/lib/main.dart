@@ -97,7 +97,18 @@ class _SwipeDemoHomeState extends State<SwipeDemoHome> {
                   letter: letter,
                   isSelected: isSelected,
                 ),
-                onWordCompleted: (word) {},
+                onLetterSelected: (letter) {
+                  print(letter);
+                },
+                onSwipeCompleted: (word) {
+                  print(word);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('You formed the word: $word'),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                },
               ),
             ),
           ],

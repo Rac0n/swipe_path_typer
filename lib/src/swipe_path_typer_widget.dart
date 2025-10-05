@@ -6,7 +6,8 @@ import 'package:swipe_path_typer/swipe_path_typer.dart';
 
 class SwipePathTyper extends StatefulWidget {
   final List<String> tiles;
-  final ValueChanged<String> onWordCompleted;
+  final ValueChanged<String> onSwipeCompleted;
+  final ValueChanged<String>? onLetterSelected;
   final TileBuilder? tileBuilder;
   final int columnCount;
   final bool simpleTapMode;
@@ -33,8 +34,11 @@ class SwipePathTyper extends StatefulWidget {
     /// The list of letters to display as swipeable tiles.
     required this.tiles,
 
-    /// Called when the swipe or tap gesture completes and forms a valid word.
-    required this.onWordCompleted,
+    /// Called when the swipe completes and forms a word.
+    required this.onSwipeCompleted,
+
+    /// Called when a letter is selected (tapped or swiped over).
+    required this.onLetterSelected,
 
     /// Optional custom builder for rendering tiles.
     this.tileBuilder,
@@ -123,8 +127,8 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
       _tileRectsInitialized = false;
     }
 
-    _controller =
-        SwipePathController(widget.tiles, simpleTapMode: widget.simpleTapMode);
+    _controller = SwipePathController(widget.tiles, widget.onLetterSelected,
+        simpleTapMode: widget.simpleTapMode);
   }
 
   /// Disposes the controller when the widget is removed from the widget tree.
@@ -154,7 +158,7 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
               hitTestBehavior: widget.tileHitTestBehavior,
               cursor: widget.tileCursor,
               child: GestureDetector(
-                  onTap: () => widget.onWordCompleted(letter),
+                  onTap: () => widget.onLetterSelected?.call(letter),
                   child: Semantics(
                     button: true,
                     label: "Key $letter",
@@ -181,7 +185,7 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
               if (result) {
                 String word = _controller.getCurrentWord();
                 if (word.isNotEmpty) {
-                  widget.onWordCompleted(word);
+                  widget.onSwipeCompleted.call(word);
                 }
               }
             },
@@ -317,7 +321,7 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
                 widget.onPanEnd?.call(details);
 
                 if (word.isNotEmpty) {
-                  widget.onWordCompleted(word);
+                  widget.onSwipeCompleted.call(word);
                 }
                 setState(() {});
               };

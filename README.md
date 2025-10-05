@@ -25,9 +25,12 @@ Ideal for games, puzzles, and creative UIs that need swipe input on a grid of ch
 ```dart
 SwipePathTyper(
   tiles: ['h', 'e', 'l', 'l', 'o'],
-  onWordCompleted: (word) {
+  onSwipeCompleted: (word) {
     print('User typed: $word');
   },
+  onLetterSelected: (letter){
+    print('User selected $letter')
+  }
 )
 ```
 
@@ -58,7 +61,8 @@ tileBuilder: (context, letter, isSelected) {
 | Parameter                 | Type                           | Description                                      |
 |---------------------------|--------------------------------|--------------------------------------------------|
 | `tiles`                   | `List<String>`                 | The list of characters to render as tiles        |
-| `onWordCompleted`         | `ValueChanged<String>`         | Called when a word is completed via swipe or tap |
+| `onSwipeCompleted`         | `ValueChanged<String>`         | Called when a word is completed via swipe        |
+| `onLetterSelected`         | `ValueChanged<String>`         | Called when a letter is selected            |
 | `tileBuilder`             | `TileBuilder?`                 | Optional builder to customize tile UI            |
 | `columnCount`             | `int`                          | Number of tiles per row (default: 5)             |
 | `simpleTapMode`           | `bool`                         | Taps immediately complete a word (default: true) |

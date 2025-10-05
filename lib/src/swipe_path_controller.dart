@@ -21,6 +21,9 @@ class SwipePathController {
   /// If true, a single tap will immediately submit a word.
   final bool simpleTapMode;
 
+  /// Called when the swipe or tap gesture selects a letter.
+  final ValueChanged<String>? onLetterSelected;
+
   /// A list of points representing the swipe trail.
   List<Offset> get swipeTrail => List.unmodifiable(_swipePoints);
 
@@ -56,6 +59,9 @@ class SwipePathController {
 
       /// The list of letters to display as swipeable tiles.
       this._tiles,
+
+      /// Called when the swipe or tap gesture selects a letter.
+      this.onLetterSelected,
 
       /// If true, a single tap will immediately submit a word.
       {this.simpleTapMode = true}) {
@@ -135,7 +141,10 @@ class SwipePathController {
       if (_lockedTiles.contains(index)) continue;
 
       selectedIndexes.add(index);
+
       _swipePath.add(index);
+      onLetterSelected?.call(_tiles[index]);
+
       _lockedTiles.add(index);
       _hoveredSelectedTile = index;
       triggerRebuild(() {});
@@ -176,6 +185,7 @@ class SwipePathController {
     _downPressed = true;
     selectedIndexes.add(index);
     _swipePath.add(index);
+    onLetterSelected?.call(_tiles[index]);
     _lockedTiles.add(index);
     _addSwipePoint(globalPosition);
     _hoveredSelectedTile = index;
@@ -236,6 +246,7 @@ class SwipePathController {
           if (_hoveredTileIndex == index && !_lockedTiles.contains(index)) {
             selectedIndexes.add(index);
             _swipePath.add(index);
+            onLetterSelected?.call(_tiles[index]);
             _lockedTiles.add(index);
             _hoveredSelectedTile = index;
             triggerRebuild(() {});
@@ -251,6 +262,7 @@ class SwipePathController {
         _hoveredTileIndex = null;
         selectedIndexes.add(index);
         _swipePath.add(index);
+        onLetterSelected?.call(_tiles[index]);
         _lockedTiles.add(index);
         _hoveredSelectedTile = index;
         _addSwipePoint(globalPosition);
@@ -286,6 +298,7 @@ class SwipePathController {
 
       selectedIndexes.add(index);
       _swipePath.add(index);
+      onLetterSelected?.call(_tiles[index]);
       triggerRebuild(() {});
 
       _cleanupTimers[index] = Timer(_cleanupDelay, () {
@@ -322,6 +335,7 @@ class SwipePathController {
       _resetState(true, true, triggerRebuild);
       selectedIndexes.add(index);
       _swipePath.add(index);
+      onLetterSelected?.call(_tiles[index]);
       _lockedTiles.add(index);
       _hoveredSelectedTile = index;
       triggerRebuild(() {});
