@@ -335,7 +335,7 @@ class SwipePathController {
       _resetState(true, true, triggerRebuild);
       selectedIndexes.add(index);
       _swipePath.add(index);
-      onLetterSelected?.call(_tiles[index]);
+
       _lockedTiles.add(index);
       _hoveredSelectedTile = index;
       triggerRebuild(() {});

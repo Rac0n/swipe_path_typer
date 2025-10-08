@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.1.2
+- Fixed a onLetterSelected bug with the onTileTapUp event.
+
 ## 1.1.1
 - Added the onLetterSelected event, as well as changed the onWordCompleted one to onSwipeCompleted as it is clearer
 
