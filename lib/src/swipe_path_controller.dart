@@ -218,6 +218,9 @@ class SwipePathController {
 
     _addSwipePoint(globalPosition);
 
+    // Always trigger rebuild for visual trail updates, even when not over tiles
+    bool shouldRebuild = false;
+
     // Unlock selected tile when finger leaves it
     if (_hoveredSelectedTile != null) {
       final rect = _tileRects[_hoveredSelectedTile!];
@@ -225,18 +228,21 @@ class SwipePathController {
         _lockedTiles.remove(_hoveredSelectedTile!);
         selectedIndexes.remove(_hoveredSelectedTile);
         _hoveredSelectedTile = null;
-        triggerRebuild(() {});
-
-        return;
+        shouldRebuild = true;
       }
     }
 
+    bool overAnyTile = false;
     for (var entry in _tileRects.entries) {
       final index = entry.key;
       final rect = entry.value;
 
       if (!rect.contains(globalPosition)) continue;
-      if (_lockedTiles.contains(index)) continue;
+      overAnyTile = true;
+
+      // Allow revisiting tiles that are not currently the hovered/selected tile
+      if (_lockedTiles.contains(index) && _hoveredSelectedTile == index)
+        continue;
 
       // Dwell trigger
       if (_hoveredTileIndex != index) {
@@ -266,9 +272,21 @@ class SwipePathController {
         _lockedTiles.add(index);
         _hoveredSelectedTile = index;
         _addSwipePoint(globalPosition);
-        triggerRebuild(() {});
+        shouldRebuild = true;
         break;
       }
+    }
+
+    // Reset hovered tile index when not over any tile
+    if (!overAnyTile && _hoveredTileIndex != null) {
+      _hoveredTileIndex = null;
+      shouldRebuild = true;
+    }
+
+    // Always rebuild to update the swipe trail
+    if (shouldRebuild || true) {
+      // Force rebuild for trail updates
+      triggerRebuild(() {});
     }
   }
 
@@ -294,7 +312,8 @@ class SwipePathController {
       final rect = entry.value;
 
       if (!rect.contains(globalPosition)) continue;
-      if (_lockedTiles.contains(index)) continue;
+      // Allow selecting new tiles at the end, but not the currently selected one
+      if (_hoveredSelectedTile == index) continue;
 
       selectedIndexes.add(index);
       _swipePath.add(index);

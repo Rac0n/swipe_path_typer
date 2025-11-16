@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.1.3
+- **Fixed double letter detection**: Double letters now work consistently throughout the entire swipe gesture, not just as the first letter
+- **Improved swipe trail rendering**: Swipe trail now updates continuously during gesture, providing smooth visual feedback even when not hovering over tiles
+- **Enhanced swipe logic**: Refined tile locking mechanism to allow revisiting tiles after leaving them
+- **Better gesture handling**: Fixed issues where swipe trail would only update when hovering over tiles
+
 ## 1.1.2
 - Fixed a onLetterSelected bug with the onTileTapUp event.
 
