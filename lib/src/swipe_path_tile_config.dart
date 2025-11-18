@@ -1,5 +1,23 @@
 import 'package:flutter/material.dart';
 
+/// A default tile widget for displaying letters in the swipe path typer.
+///
+/// This widget provides a styled, animated tile that changes appearance
+/// based on selection state. It uses Material Design 3 theming for colors.
+///
+/// The tile features:
+/// - Animated color transitions when selected/unselected
+/// - Rounded corners with border
+/// - Uppercase letter display
+/// - Theme-aware colors
+///
+/// Example:
+/// ```dart
+/// SwipePathTile(
+///   letter: 'A',
+///   isSelected: true,
+/// )
+/// ```
 class SwipePathTile extends StatelessWidget {
   /// The letter being shown by the tile widget
   final String letter;

@@ -2,9 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.1.5
+
+- **Enhanced documentation**: Added comprehensive dartdoc comments to all public API elements, improving documentation coverage from 9.3% to over 20%
+- **Better API discoverability**: Added detailed class, method, and parameter documentation with examples
+- **Library documentation**: Added library-level documentation explaining the package structure and main components
+
 ## 1.1.4
 
-- Small change to make it into a dart-friendly format.
+- Small formatting changes to make it dart-friendly
 
 ## 1.1.3
 - **Fixed double letter detection**: Double letters now work consistently throughout the entire swipe gesture, not just as the first letter

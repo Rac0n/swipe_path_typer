@@ -94,7 +94,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  swipe_path_typer: ^1.1.4
+  swipe_path_typer: ^1.1.5
 ```
 
 ---

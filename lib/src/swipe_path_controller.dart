@@ -2,6 +2,21 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 
+/// A controller that manages the state and logic for swipe path typing.
+///
+/// This controller handles:
+/// - Tracking swipe points and selected tiles
+/// - Gesture recognition (taps, swipes, sharp turns)
+/// - Dwell timers for hover-based selection
+/// - State management for the swipe path
+///
+/// Example:
+/// ```dart
+/// final controller = SwipePathController(
+///   ['H', 'E', 'L', 'L', 'O'],
+///   (letter) => print('Selected: $letter'),
+/// );
+/// ```
 class SwipePathController {
   /// The list of letters to display as swipeable tiles.
   final List<String> _tiles;
@@ -24,7 +39,10 @@ class SwipePathController {
   /// Called when the swipe or tap gesture selects a letter.
   final ValueChanged<String>? onLetterSelected;
 
-  /// A list of points representing the swipe trail.
+  /// Returns an unmodifiable list of points representing the current swipe trail.
+  ///
+  /// These points are used to draw the visual trail as the user swipes across tiles.
+  /// The list is automatically managed and trimmed to [_maxSwipePoints] for performance.
   List<Offset> get swipeTrail => List.unmodifiable(_swipePoints);
 
   /// A list of points used to lock tiles during swipes.
@@ -117,6 +135,16 @@ class SwipePathController {
     }
   }
 
+  /// Handles the start of a pan gesture at the specified position.
+  ///
+  /// This method initializes the swipe gesture, resets the controller state,
+  /// and selects the first tile if the position is over a valid tile.
+  ///
+  /// Returns the index of the selected tile, or -1 if no tile was selected.
+  ///
+  /// Parameters:
+  /// - [globalPosition]: The global position of the tap.
+  /// - [triggerRebuild]: A function to trigger a rebuild of the widget tree.
   int onPanStart(
 
       /// The global position of the tap.
@@ -168,7 +196,12 @@ class SwipePathController {
     return defaultIndex;
   }
 
-  /// Initializes the tile rectangles after the first build.
+  /// Handles a tap down event on a specific tile.
+  ///
+  /// This method is called when a user taps directly on a tile rather than
+  /// starting a pan gesture. It immediately selects the tile and adds it to the path.
+  ///
+  /// Parameters:
   void onTileTapDown(
 
       /// The index of the tile that was tapped.
@@ -207,6 +240,18 @@ class SwipePathController {
   }
 
   /// Updates the swipe path based on the current global position.
+  ///
+  /// This method is called continuously during a pan gesture to:
+  /// - Update the visual trail
+  /// - Detect when tiles are entered or exited
+  /// - Trigger selection via dwell timers or sharp turn detection
+  /// - Unlock tiles when the gesture leaves them
+  ///
+  /// The method uses two selection strategies:
+  /// 1. **Dwell timer**: Tile is selected after hovering for [_minSwipeTurnDelay]
+  /// 2. **Sharp turn**: Immediate selection when a sharp directional change is detected
+  ///
+  /// Parameters:
   void updateSwipe(
 
       /// The current global position of the swipe gesture.
@@ -291,12 +336,27 @@ class SwipePathController {
     }
   }
 
-  /// Ends the swipe and returns the current word formed by the swipe path.
+  /// Returns the current word formed by the swipe path.
+  ///
+  /// Concatenates all selected tiles in order to form a word string.
+  /// This can be called at any time during or after a swipe gesture.
+  ///
+  /// Returns an empty string if no tiles have been selected.
   String getCurrentWord() {
     return _swipePath.map((i) => _tiles[i]).join();
   }
 
-  /// Ends the swipe and returns the current word formed by the swipe path.
+  /// Ends the swipe gesture and returns the formed word.
+  ///
+  /// This method:
+  /// - Adds the final swipe point
+  /// - Attempts to select a tile at the end position
+  /// - Returns the complete word
+  /// - Resets the controller state
+  ///
+  /// Returns the word formed by the swipe path, or an empty string if no word was formed.
+  ///
+  /// Parameters:
   String endSwipe(
 
       /// The global position where the swipe ended.
@@ -340,7 +400,15 @@ class SwipePathController {
     return word;
   }
 
-  /// Checks if a tile was tapped and updates the state accordingly.
+  /// Handles a tap up event on a specific tile.
+  ///
+  /// This method is used in non-simpleTapMode to complete a word when
+  /// the user lifts their finger while over a tile they tapped down on.
+  ///
+  /// Returns `true` if the tap was processed and a word should be submitted,
+  /// `false` otherwise.
+  ///
+  /// Parameters:
   bool onTileTapUp(
 
       /// The index of the tile that was tapped.
@@ -378,6 +446,13 @@ class SwipePathController {
   }
 
   // --- Sharp Turn Detection ---
+
+  /// Calculates the angle in degrees between two offset vectors.
+  ///
+  /// Used for sharp turn detection to determine when a user makes a
+  /// significant directional change while swiping.
+  ///
+  /// Returns the angle in degrees (0-180).
   double _angleBetween(Offset a, Offset b) {
     final dot = a.dx * b.dx + a.dy * b.dy;
     final magA = a.distance;
@@ -388,6 +463,17 @@ class SwipePathController {
   }
 
   /// Checks if the last three swipe points form a sharp turn near the tile at the given index.
+  ///
+  /// A sharp turn is detected when:
+  /// - There are at least 3 swipe points
+  /// - The segments have minimum length ([minSegmentLength])
+  /// - The angle between segments is between 20° and 110°
+  /// - The final point is within the tile's bounds
+  ///
+  /// This allows for instant tile selection when making quick directional changes,
+  /// improving the responsiveness of the swipe gesture.
+  ///
+  /// Returns `true` if a sharp turn is detected near the tile.
   bool _isSharpTurnNear(int index) {
     final len = _swipePoints.length;
 
@@ -415,12 +501,26 @@ class SwipePathController {
   }
 
   // --- Tile Bounds Management ---
+
   /// Registers the rectangle bounds of a tile at the given index.
+  ///
+  /// This method is called during the initial layout to store the screen positions
+  /// of all tiles. These bounds are used for hit testing during swipe gestures.
+  ///
+  /// Parameters:
+  /// - [index]: The tile index
+  /// - [rect]: The global rectangle bounds of the tile
   void registerTileRect(int index, Rect rect) {
     _tileRects[index] = rect;
   }
 
-  /// Disposes the controller, clearing all internal state.
+  /// Disposes the controller, clearing all internal state and canceling timers.
+  ///
+  /// This method should be called when the controller is no longer needed
+  /// to prevent memory leaks. It:
+  /// - Clears all data structures
+  /// - Cancels all active timers
+  /// - Releases all resources
   void dispose() {
     _tileRects.clear();
     selectedIndexes.clear();

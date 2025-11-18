@@ -4,6 +4,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:swipe_path_typer/swipe_path_typer.dart';
 
+/// The main widget for swipe-based typing, similar to gesture typing on mobile keyboards.
+///
+/// This widget provides a customizable interface for gesture-based text input where users
+/// can swipe across letter tiles to form words. It's designed for word games, puzzles,
+/// educational apps, or any interface requiring creative text input.
+///
+/// ## Features
+///
+/// - **Gesture Recognition**: Detects swipes, taps, and sharp turns
+/// - **Visual Feedback**: Animated trail that follows the user's gesture
+/// - **Customizable**: Full control over appearance and behavior
+/// - **Two Modes**: Simple tap mode or full swipe mode
+/// - **Accessibility**: Proper semantics and mouse/touch support
+///
+/// ## Example
+///
+/// ```dart
+/// SwipePathTyper(
+///   tiles: ['W', 'O', 'R', 'D'],
+///   onSwipeCompleted: (word) => print('Formed: $word'),
+///   onLetterSelected: (letter) => print('Selected: $letter'),
+///   columnCount: 4,
+///   simpleTapMode: false,
+/// )
+/// ```
+///
+/// ## Gesture Detection
+///
+/// The widget uses two strategies for selecting tiles during a swipe:
+///
+/// 1. **Dwell Timer**: Tiles are selected after hovering for ~420ms
+/// 2. **Sharp Turns**: Immediate selection when making quick directional changes
+///
+/// This combination provides a natural, responsive typing experience.
 class SwipePathTyper extends StatefulWidget {
   final List<String> tiles;
   final ValueChanged<String> onSwipeCompleted;
@@ -96,9 +130,34 @@ class SwipePathTyper extends StatefulWidget {
   State<SwipePathTyper> createState() => _SwipePathTyperState();
 }
 
+/// A builder function for creating custom tile widgets.
+///
+/// This typedef defines the signature for a function that builds a custom
+/// tile widget for each letter in the swipe path typer.
+///
+/// Parameters:
+/// - [context]: The build context
+/// - [letter]: The letter to display in this tile
+/// - [isSelected]: Whether this tile is currently selected in the swipe path
+///
+/// Returns a [Widget] that represents the tile.
+///
+/// Example:
+/// ```dart
+/// Widget myTileBuilder(BuildContext context, String letter, bool isSelected) {
+///   return Container(
+///     color: isSelected ? Colors.blue : Colors.grey,
+///     child: Text(letter),
+///   );
+/// }
+/// ```
 typedef TileBuilder = Widget Function(
     BuildContext context, String letter, bool isSelected);
 
+/// The state for [SwipePathTyper] widget.
+///
+/// Manages the controller, tile layout, gesture detection, and visual rendering
+/// of the swipe path typer.
 class _SwipePathTyperState extends State<SwipePathTyper> {
   /// The controller that manages the swipe path state.
   late SwipePathController _controller;
@@ -138,7 +197,13 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
     super.dispose();
   }
 
-  /// Builds the Tile widgets using the default Tile or a custom one
+  /// Builds a single tile widget for the given index.
+  ///
+  /// Creates either a simple tap-enabled tile or a gesture-enabled tile
+  /// depending on [widget.simpleTapMode]. Uses either the custom [widget.tileBuilder]
+  /// or the default [SwipePathTile].
+  ///
+  /// Parameters:
   Widget _buildTile(
 
       /// The index of the tile being built (based on the list of letters given)
@@ -199,7 +264,13 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
     );
   }
 
-  /// The widget that draws the swiping trail when writing
+  /// Builds the widget that renders the swipe trail.
+  ///
+  /// Creates a [CustomPaint] widget with [SwipeTrailPainter] that draws
+  /// the visual path as the user swipes. The trail is rendered in local
+  /// coordinates and updates continuously during gestures.
+  ///
+  /// Returns a [Widget] that displays the swipe trail.
   Widget _buildSwipeTrail() {
     return IgnorePointer(
       child: Builder(
@@ -225,7 +296,13 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
     );
   }
 
-  /// Registers all tile rectangles after the first frame is rendered.
+  /// Registers all tile rectangles with the controller after layout.
+  ///
+  /// This method is called once after the first frame to capture the global
+  /// positions and sizes of all tiles. These bounds are used for hit testing
+  /// during swipe gestures.
+  ///
+  /// Parameters:
   void _registerAllTileRects(
 
       /// The build context for the widget.
@@ -255,7 +332,13 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
     }
   }
 
-  /// The main widget when simpleTapMode is set to true
+  /// Builds the widget tree for simple tap mode.
+  ///
+  /// In simple tap mode, each tile responds to individual taps without
+  /// swipe gesture support. This mode is simpler and more suitable for
+  /// quick sequential input.
+  ///
+  /// Parameters:
   Widget _buildSimpleTapMode(
 
       /// The build context of the widget
@@ -291,7 +374,13 @@ class _SwipePathTyperState extends State<SwipePathTyper> {
     );
   }
 
-  /// The main widget when simpleTapMode is set to false, which is the default
+  /// Builds the widget tree for full swipe mode.
+  ///
+  /// In swipe mode, the widget supports pan gestures for swiping across
+  /// multiple tiles to form words. The swipe trail is rendered and gesture
+  /// callbacks are wired up to the controller.
+  ///
+  /// Parameters:
   Widget _buildSwipeMode(
 
       /// The build context of the widget

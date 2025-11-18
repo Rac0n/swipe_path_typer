@@ -1,5 +1,24 @@
 import 'package:flutter/material.dart';
 
+/// A custom painter that draws the swipe trail during gesture typing.
+///
+/// This painter creates a smooth, continuous line that follows the user's
+/// finger or mouse as they swipe across tiles. The trail provides visual
+/// feedback about the swipe path.
+///
+/// The painter automatically optimizes repainting by checking if the points
+/// have changed before redrawing.
+///
+/// Example:
+/// ```dart
+/// CustomPaint(
+///   painter: SwipeTrailPainter(
+///     points: swipePoints,
+///     color: Colors.blue,
+///     strokeWidth: 8.0,
+///   ),
+/// )
+/// ```
 class SwipeTrailPainter extends CustomPainter {
   final List<Offset> points;
   final Color color;
@@ -18,6 +37,11 @@ class SwipeTrailPainter extends CustomPainter {
   });
 
   /// Paints the swipe trail on the canvas.
+  ///
+  /// Creates a path connecting all points and draws it with rounded caps
+  /// for a smooth appearance. Returns early if there are fewer than 2 points.
+  ///
+  /// Parameters:
   @override
   void paint(
 
@@ -43,7 +67,12 @@ class SwipeTrailPainter extends CustomPainter {
     canvas.drawPath(path, paint);
   }
 
-  /// Indicates whether the painter should repaint when the points change.
+  /// Determines whether the painter should repaint.
+  ///
+  /// Returns `true` if the points have changed since the last paint,
+  /// triggering a repaint. This optimization prevents unnecessary redraws.
+  ///
+  /// Parameters:
   @override
   bool shouldRepaint(
 
