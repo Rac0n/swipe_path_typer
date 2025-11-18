@@ -2,7 +2,7 @@ name: swipe_path_typer
 description: >
   A swipe-based typing widget for Flutter that mimics gesture typing on mobile keyboards.
   Ideal for games, word puzzles, or creative input mechanics.
-version: 1.1.3
+version: 1.1.4
 homepage: https://github.com/Rac0n/swipe_path_typer
 repository: https://github.com/Rac0n/swipe_path_typer
 issue_tracker: https://github.com/Rac0n/swipe_path_typer/issues

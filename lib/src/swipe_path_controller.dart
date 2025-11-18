@@ -241,8 +241,9 @@ class SwipePathController {
       overAnyTile = true;
 
       // Allow revisiting tiles that are not currently the hovered/selected tile
-      if (_lockedTiles.contains(index) && _hoveredSelectedTile == index)
+      if (_lockedTiles.contains(index) && _hoveredSelectedTile == index) {
         continue;
+      }
 
       // Dwell trigger
       if (_hoveredTileIndex != index) {

@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.1.4
+
+- Small change to make it into a dart-friendly format.
+
 ## 1.1.3
 - **Fixed double letter detection**: Double letters now work consistently throughout the entire swipe gesture, not just as the first letter
 - **Improved swipe trail rendering**: Swipe trail now updates continuously during gesture, providing smooth visual feedback even when not hovering over tiles
